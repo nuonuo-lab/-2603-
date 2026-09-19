@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>一年级上册生字卡片生成器｜2603版</title>
-  
+
   <!-- 引入标准单层 ɑ 手写拼音字体与全平台中文字体支持 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
       --pinyin-line: #82c99b;   /* 四线三格护眼绿 */
       --text-black: #000000;    /* 纯黑色文字 */
       --stroke-red: #ff0000;    /* 最新笔画高亮红 */
-      
+
       /* 跨平台楷体回退序列 */
       --font-kaiti: "STKaiti", "Kaiti SC", "KaiTi", "KaiTi_GB2312", "Noto Serif SC", "FZKai-Z03S", serif;
       /* 优雅手写拼音字体（优先 Andika 保证单层 ɑ） */
@@ -34,7 +34,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background-color: #f2f7f4;
+      background-color: #f0f4f1;
       color: #000;
     }
 
@@ -70,7 +70,7 @@
 
     textarea {
       width: 100%;
-      height: 150px;
+      height: 120px;
       padding: 10px;
       border: 1px solid #a5d6a7;
       border-radius: 6px;
@@ -111,26 +111,26 @@
       padding-bottom: 30px;
     }
 
-    /* 标准 A4 页面 (210mm x 297mm) */
+    /* 标准 A4 页面 (210mm x 297mm) - 3×3 极致满格零死角排版 */
     .a4-page {
       width: 210mm;
       height: 297mm;
       background: white;
-      padding: 5mm 6mm;
+      padding: 3.5mm 4mm; /* 极简 3.5mm 边距，把所有空间留给内容 */
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-      gap: 3.5mm;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 2.5mm 2.5mm; /* 极窄间距 */
       page-break-after: always;
       break-after: page;
       box-sizing: border-box;
     }
 
-    /* 单张卡片布局 */
+    /* 3x3 满格卡片容器 */
     .card {
-      border: 1px dashed #a5d6a7;
-      border-radius: 4px;
+      border: 1.2px dashed #a5d6a7;
+      border-radius: 6px;
       padding: 4px 6px;
       display: flex;
       flex-direction: column;
@@ -141,12 +141,12 @@
       overflow: hidden;
     }
 
-    /* 1. 拼音区 (矢量四线三格 + 自然秀气拼音) */
+    /* 1. 拼音区 (矢量四线三格 + 大号拼音) */
     .pinyin-container {
       width: 100%;
-      height: 36px;
+      height: 38px;
       position: relative;
-      margin-top: 1px;
+      flex-shrink: 0;
     }
 
     .pinyin-svg {
@@ -157,44 +157,45 @@
 
     .pinyin-svg-text {
       font-family: var(--font-pinyin);
-      font-size: 19px;
-      font-weight: 400; /* 取消加粗，保持标准手写美感 */
+      font-size: 23px; /* 进一步增大拼音字体 */
+      font-weight: 400;
       fill: var(--text-black);
       text-anchor: middle;
       dominant-baseline: alphabetic;
       letter-spacing: 0.5px;
     }
 
-    /* 2. 笔画笔顺区 */
+    /* 2. 笔画笔顺区 (放大笔顺步长框) */
     .stroke-order-row {
       width: 100%;
-      height: 22px;
+      height: 27px;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      gap: 4px;
-      padding: 0 2px;
+      gap: 3px;
+      padding: 0 1px;
+      flex-shrink: 0;
     }
 
     .stroke-count-label {
-      font-size: 11.5px;
+      font-size: 13.5px; /* 加大画数标签 */
       font-weight: bold;
       color: var(--text-black);
       white-space: nowrap;
-      margin-right: 2px;
+      margin-right: 1px;
     }
 
     .stroke-steps-list {
       display: flex;
       align-items: center;
-      gap: 2px;
-      max-width: 155px;
+      gap: 2.5px;
+      max-width: 156px;
       overflow-x: auto;
     }
 
     .stroke-step-item {
-      width: 19px;
-      height: 19px;
+      width: 25px; /* 放大笔顺演变框 25px × 25px */
+      height: 25px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -206,16 +207,18 @@
       height: 100%;
     }
 
-    /* 3. 中间核心：护眼绿田字格 + 跨平台楷体大字 */
+    /* 3. 中间核心：扩展至 148px 的巨大正方形田字格 + 112px 超大汉字 */
     .tianzige-box {
-      width: 106px;
-      height: 106px;
+      width: 148px;
+      height: 148px;
       position: relative;
-      border: 2px solid var(--grid-border);
+      border: 2.2px solid var(--grid-border);
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 1px 0;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(46, 125, 50, 0.08);
     }
 
     .tianzige-svg {
@@ -228,7 +231,7 @@
 
     .hanzi-text {
       font-family: var(--font-kaiti);
-      font-size: 78px;
+      font-size: 112px; /* 112px 极具张力的超大汉字 */
       font-weight: bold;
       color: var(--text-black);
       z-index: 1;
@@ -236,17 +239,17 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 4. 底部组词造句区 */
+    /* 4. 底部组词造句区：字体全面加大（17px） */
     .card-info {
       width: 100%;
       font-family: var(--font-kaiti);
-      font-size: 14px;
       color: var(--text-black);
       display: flex;
       flex-direction: column;
       gap: 2px;
-      line-height: 1.4;
+      line-height: 1.35;
       padding: 0 1px;
+      flex-shrink: 0;
     }
 
     .info-item {
@@ -256,18 +259,18 @@
 
     .label {
       font-weight: bold;
-      font-size: 14.5px;
+      font-size: 17.5px; /* 粗体标签 17.5px */
       color: var(--text-black);
       white-space: nowrap;
     }
 
     .content {
-      font-size: 14px;
+      font-size: 16.5px; /* 组词造句内容 16.5px */
       color: var(--text-black);
       word-break: break-all;
     }
 
-    /* 针对手机屏幕预览的适配 */
+    /* 移动端预览适配 */
     @media screen and (max-width: 768px) {
       .control-panel {
         margin: 10px;
@@ -286,7 +289,7 @@
       }
     }
 
-    /* 打印控制 */
+    /* 打印与导出 PDF 专属配置 */
     @media print {
       body { background: none; }
       .control-panel { display: none !important; }
@@ -307,13 +310,14 @@
 </head>
 <body>
 
+  <!-- CONTROL PANEL -->
   <div class="control-panel">
     <h1>
       <span>🌿 一年级上册生字卡片生成器｜2603版</span>
-      <span style="font-size: 13px; font-weight: normal; color: #555;">护眼绿田字格 + 笔顺高亮</span>
+      <span style="font-size: 13px; font-weight: normal; color: #555;"> 护眼绿田字格（148px）+ 112px大字 + 17px组词造句</span>
     </h1>
     <div class="info-tips">
-      💡 <strong>提示：</strong> 下方输入框已预设本学期生字，您也可以自由编辑或粘贴新内容，点击“生成字卡”即可实时更新。
+      ✨ <strong>提示：</strong>下方输入框已预设本学期生字，您也可以自由编辑或粘贴新内容，点击“生成字卡”即可实时更新。</strong>！
     </div>
     <textarea id="inputText"></textarea>
     <div class="btn-group">
@@ -341,7 +345,7 @@
       "禾": { p: "hé", c: "禾苗、禾田", j: "地里的禾苗长势非常好。" },
       "火": { p: "huǒ", c: "大火、火柴", j: "严禁在森林里玩火。" },
       "八": { p: "bā", c: "八个、八天", j: "池塘里有八只鸭子。" },
-      "十": { p: "shí", c: "十个、十分", j: "今天我的表现非常出色。" },
+      "十": { p: "shí", c: "十个、十分", j: "今天我的表现十分出色。" },
       "了": { p: "le", c: "走了、来了", j: "下课铃声响了。" },
       "子": { p: "zǐ", c: "孩子、桌子", j: "孩子们在草地上快乐跑着。" },
       "人": { p: "rén", c: "人口、大人", j: "广场上有很多人在散步。" },
@@ -536,7 +540,8 @@
         return;
       }
 
-      const CARDS_PER_PAGE = 12;
+      // 严格 3×3（每页9张，极致空间利用率）
+      const CARDS_PER_PAGE = 9;
       const pageCount = Math.ceil(data.length / CARDS_PER_PAGE);
 
       for (let p = 0; p < pageCount; p++) {
@@ -549,27 +554,26 @@
           const card = document.createElement('div');
           card.className = 'card';
 
-          // 1. 矢量四线三格 + 自然精准拼音 (采用天然手写体比例，无强制缩放与加粗)
+          // 1. 矢量四线三格 + 23px 舒展拼音
           const pinyinContainer = document.createElement('div');
           pinyinContainer.className = 'pinyin-container';
           pinyinContainer.innerHTML = `
-            <svg class="pinyin-svg" viewBox="0 0 100 36">
-              <!-- 四线三格：三等分每格高10px -->
-              <line x1="0" y1="3" x2="100" y2="3" stroke="#82c99b" stroke-width="0.8" />
-              <line x1="0" y1="13" x2="100" y2="13" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
-              <line x1="0" y1="23" x2="100" y2="23" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
-              <line x1="0" y1="33" x2="100" y2="33" stroke="#82c99b" stroke-width="0.8" />
-              
-              <!-- 拼音文字：锚定基线在 Y=23 (第三线)，展现自然手写体美感 -->
-              <text x="50" y="23" class="pinyin-svg-text">${item.pinyin}</text>
+            <svg class="pinyin-svg" viewBox="0 0 100 38">
+              <line x1="0" y1="4" x2="100" y2="4" stroke="#82c99b" stroke-width="0.8" />
+              <line x1="0" y1="14" x2="100" y2="14" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
+              <line x1="0" y1="24" x2="100" y2="24" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
+              <line x1="0" y1="34" x2="100" y2="34" stroke="#82c99b" stroke-width="0.8" />
+              <text x="50" y="24" class="pinyin-svg-text">${item.pinyin}</text>
             </svg>
           `;
 
+          // 2. 放大版笔画笔顺区
           const strokeRow = document.createElement('div');
           strokeRow.className = 'stroke-order-row';
-          strokeRow.innerText = '加载笔顺...';
+          strokeRow.innerText = '加载...';
           populateStrokeRow(item.hanzi, strokeRow);
 
+          // 3. 核心 148px 巨大正方形田字格 + 112px 超大汉字
           const tianzigeBox = document.createElement('div');
           tianzigeBox.className = 'tianzige-box';
           tianzigeBox.innerHTML = `
@@ -582,6 +586,7 @@
             <div class="hanzi-text">${item.hanzi}</div>
           `;
 
+          // 4. 底部大字号（17px）组词造句区
           const cardInfo = document.createElement('div');
           cardInfo.className = 'card-info';
           cardInfo.innerHTML = `
@@ -603,6 +608,7 @@
           page.appendChild(card);
         }
 
+        // 补齐空白占位卡片，确保排版对齐
         if (pageData.length < CARDS_PER_PAGE) {
           for (let i = 0; i < CARDS_PER_PAGE - pageData.length; i++) {
             const emptyCard = document.createElement('div');
@@ -622,3 +628,4 @@
   </script>
 </body>
 </html>
+
