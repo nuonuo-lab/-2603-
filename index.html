@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一年级上册生字卡片生成器 (护眼绿+楷体大字+A4打印)</title>
+  <style>
+    :root {
+      --primary-color: #2e7d32;
+      /* 护眼绿主题色彩 */
+      --grid-border: #2e7d32;   /* 田字格实线绿 */
+      --grid-dash: #81c784;     /* 田字格虚线绿 */
+      --pinyin-line: #82c99b;   /* 四线三格护眼绿 */
+      --text-black: #000000;    /* 纯黑色文字 */
+      --stroke-red: #ff0000;    /* 最新笔画高亮红 */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #f2f7f4;
+      color: #000;
+    }
+
+    /* 顶部控制面板 */
+    .control-panel {
+      max-width: 1050px;
+      margin: 15px auto;
+      padding: 15px 20px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .control-panel h1 {
+      font-size: 20px;
+      color: #1b5e20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .info-tips {
+      font-size: 13px;
+      color: #2e7d32;
+      background: #e8f5e9;
+      padding: 8px 12px;
+      border-left: 4px solid var(--primary-color);
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 10px;
+      border: 1px solid #a5d6a7;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: monospace;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    .btn-group {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 9px 22px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background-color: #2e7d32; color: white; }
+    .btn-primary:hover { background-color: #1b5e20; }
+    .btn-print { background-color: #27ae60; color: white; }
+    .btn-print:hover { background-color: #1e8449; }
+
+    /* 预览容器 */
+    #preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 30px;
+    }
+
+    /* 标准 A4 页面 (210mm x 297mm) */
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      padding: 5mm 6mm;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 3.5mm;
+      page-break-after: always;
+      break-after: page;
+      box-sizing: border-box;
+    }
+
+    /* 单张卡片布局 */
+    .card {
+      border: 1px dashed #a5d6a7;
+      border-radius: 4px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* 1. 拼音区 (护眼绿四线三格 + 经典楷体字加厚对齐) */
+    .pinyin-container {
+      width: 100%;
+      height: 28px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .pinyin-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .pinyin-line {
+      width: 100%;
+      height: 1px;
+      background-color: var(--pinyin-line);
+    }
+
+    .pinyin-line:nth-child(2), .pinyin-line:nth-child(3) {
+      border-top: 1px dashed var(--pinyin-line);
+      background-color: transparent;
+    }
+
+    .pinyin-text {
+      font-family: "Kaiti", "KaiTi_GB2312", "STKaiti", serif;
+      font-size: 26px;
+      font-weight: bold;
+      color: var(--text-black);
+      z-index: 1;
+      line-height: 28px;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -3px;
+    }
+
+    /* 2. 笔画笔顺区 (黑色字 + 逐笔演变，最新一笔标红) */
+    .stroke-order-row {
+      width: 100%;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      padding: 0 2px;
+    }
+
+    .stroke-count-label {
+      font-size: 11.5px;
+      font-weight: bold;
+      color: var(--text-black);
+      white-space: nowrap;
+      margin-right: 2px;
+    }
+
+    .stroke-steps-list {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      max-width: 155px;
+      overflow-x: auto;
+    }
+
+    .stroke-step-item {
+      width: 19px;
+      height: 19px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stroke-step-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 3. 中间核心：护眼绿田字格 + 极大汉字 */
+    .tianzige-box {
+      width: 106px;
+      height: 106px;
+      position: relative;
+      border: 2px solid var(--grid-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1px 0;
+    }
+
+    .tianzige-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hanzi-text {
+      font-family: "Kaiti", "楷体", "STKaiti", serif;
+      font-size: 78px;
+      font-weight: bold;
+      color: var(--text-black);
+      z-index: 1;
+      line-height: 1;
+    }
+
+    /* 4. 底部组词造句区：字体更大、空间最大化 */
+    .card-info {
+      width: 100%;
+      font-family: "Kaiti", "KaiTi_GB2312", "STKaiti", serif;
+      font-size: 14px;
+      color: var(--text-black);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.4;
+      padding: 0 1px;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .label {
+      font-weight: bold;
+      font-size: 14.5px;
+      color: var(--text-black);
+      white-space: nowrap;
+    }
+
+    .content {
+      font-size: 14px;
+      color: var(--text-black);
+      word-break: break-all;
+    }
+
+    /* 打印控制 */
+    @media print {
+      body { background: none; }
+      .control-panel { display: none !important; }
+      #preview-container { padding: 0; }
+      .a4-page {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        height: 297mm;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="control-panel">
+    <h1>
+      <span>🌿 一年级上册生字卡片生成器（2603班专属）</span>
+      <span style="font-size: 13px; font-weight: normal; color: #555;">护眼绿田字格 + 笔顺高亮</span>
+    </h1>
+    <div class="info-tips">
+      <strong>说明：</strong> 可定义输入其他汉字并生成导出
+    </div>
+    <textarea id="inputText"></textarea>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="generateCards()">⚡ 生成/刷新字卡</button>
+      <button class="btn-print" onclick="window.print()">🖨️ 导出 PDF / 打印</button>
+    </div>
+  </div>
+
+  <div id="preview-container"></div>
+
+  <script>
+    // 指定生字表：一 二 三 上 口 目 耳 手 日 田 禾 火 八 十 了 子 人 大 月 儿 头 里 可 东 西 天 四 是 女 开 水 去 来 不 小 少 早 书 刀 尺 本 木 林 土 力 心 中 五 立 正 在 后 我 好 长 比 巴 把 下 个 雨 们 问 有 半 从 才 明 同 学 自 己 衣 白 的 又 和 竹 牙 马 用 几 只 石 多 出 见 对 妈 全 回
+    const allCharacters = ["一","二","三","上","口","目","耳","手","日","田","禾","火","八","十","了","子","人","大","月","儿","头","里","可","东","西","天","四","是","女","开","水","去","来","不","小","少","早","书","刀","尺","本","木","林","土","力","心","中","五","立","正","在","后","我","好","长","比","巴","把","下","个","雨","们","问","有","半","从","才","明","同","学","自","己","衣","白","的","又","和","竹","牙","马","用","几","只","石","多","出","见","对","妈","全","回"];
+
+    // 95字精选拼音、组词与造句数据库
+    const dictDB = {
+      "一": { p: "yī", c: "一天、一共", j: "我今天读了一本书。" },
+      "二": { p: "èr", c: "二十、二月", j: "桌上有两个苹果。" },
+      "三": { p: "sān", c: "三天、三个", j: "我们一家有三口人。" },
+      "上": { p: "shàng", c: "排队、上下", j: "小鸟飞上了天空。" },
+      "口": { p: "kǒu", c: "门口、开口", j: "小狗蹲在门口摇尾巴。" },
+      "目": { p: "mù", c: "目光、目录", j: "我们要保护好眼睛。" },
+      "耳": { p: "ěr", c: "耳朵、木耳", j: "兔子的耳朵长长的。" },
+      "手": { p: "shǒu", c: "手机、洗手", j: "冬天出门要戴手套。" },
+      "日": { p: "rì", c: "日子、日出", j: "今天是充满阳光的一天。" },
+      "田": { p: "tián", c: "田野、水田", j: "农民伯伯在田里忙碌。" },
+      "禾": { p: "hé", c: "禾苗、禾田", j: "地里的禾苗长势非常好。" },
+      "火": { p: "huǒ", c: "大火、火柴", j: "严禁在森林里玩火。" },
+      "八": { p: "bā", c: "八个、八天", j: "池塘里有八只鸭子。" },
+      "十": { p: "shí", c: "十个、十分", j: "今天我的表现非常出色。" },
+      "了": { p: "le", c: "走了、来了", j: "下课铃声响了。" },
+      "子": { p: "zǐ", c: "孩子、桌子", j: "孩子们在草地上快乐跑着。" },
+      "人": { p: "rén", c: "人口、大人", j: "广场上有很多人在散步。" },
+      "大": { p: "dà", c: "大树、大家", j: "大海辽阔无边。" },
+      "月": { p: "yuè", c: "月亮、月牙", j: "弯弯的月亮像小船。" },
+      "儿": { p: "ér", c: "儿子、花儿", j: "花儿在阳光下吐露芬芳。" },
+      "头": { p: "tóu", c: "头发、低头", j: "读书时不要低头太近。" },
+      "里": { p: "lǐ", c: "水里、家里", j: "小鱼在水里欢快地游着。" },
+      "可": { p: "kě", c: "可爱、可以", j: "小兔子的模样非常可爱。" },
+      "东": { p: "dōng", c: "东方、东西", j: "太阳从东方升起。" },
+      "西": { p: "xī", c: "西方、西瓜", j: "夏天吃西瓜非常解渴。" },
+      "天": { p: "tiān", c: "天空、天气", j: "蓝蓝的天空上有白云。" },
+      "四": { p: "sì", c: "四个、四月", j: "一年有四个季节。" },
+      "是": { p: "shì", c: "是的、可是", j: "他是我的好朋友。" },
+      "女": { p: "nǚ", c: "女孩、女生", j: "女生们在操场跳绳。" },
+      "开": { p: "kāi", c: "开门、开花", j: "离开教室要随手关门。" },
+      "水": { p: "shuǐ", c: "水杯、河水", j: "我们要节约每一滴水。" },
+      "去": { p: "qù", c: "去上学、过去", j: "我们一起去公园散步。" },
+      "来": { p: "lái", c: "来到、来去", j: "欢迎新同学来到学校。" },
+      "不": { p: "bù", c: "不行、不是", j: "公共场所不能大声喧哗。" },
+      "小": { p: "xiǎo", c: "大小、小孩", j: "小猫在阳光下打滚。" },
+      "少": { p: "shǎo", c: "多少、减少", j: "少吃零食多吃蔬菜。" },
+      "早": { p: "zǎo", c: "早上、早晨", j: "早上好，清晨空气真好。" },
+      "书": { p: "shū", c: "书本、看书", j: "书本是我们的好朋友。" },
+      "刀": { p: "dāo", c: "小刀、剪刀", j: "使用小刀注意安全。" },
+      "尺": { p: "chǐ", c: "尺子、直尺", j: "用尺子画一条直线。" },
+      "本": { p: "běn", c: "本子、书本", j: "在作业本上工整写字。" },
+      "木": { p: "mù", c: "木头、树木", j: "山上有许多高大的树木。" },
+      "林": { p: "lín", c: "树林、森林", j: "小鸟在树林里穿梭。" },
+      "土": { p: "tǔ", c: "泥土、土地", j: "植物生长需要肥沃泥土。" },
+      "力": { p: "lì", c: "力量、有力", j: "拔河比赛大家一起用力。" },
+      "心": { p: "xīn", c: "开心、心愿", j: "今天我过得非常开心。" },
+      "中": { p: "zhōng", c: "中间、中国", j: "我们坐在教室中间。" },
+      "五": { p: "wǔ", c: "五天、五角星", j: "国旗上有五颗红星。" },
+      "立": { p: "lì", c: "立正、站立", j: "升国旗时要肃立。" },
+      "正": { p: "zhèng", c: "立正、正反", j: "我们站立姿势要端正。" },
+      "在": { p: "zài", c: "正在、在家", j: "同学们在认真写字。" },
+      "后": { p: "hòu", c: "后退、后面", j: "小狗跑到了我后面。" },
+      "我": { p: "wǒ", c: "我们、自我", j: "我是一名一年级小学生。" },
+      "好": { p: "hǎo", c: "好人、你好", j: "小明是个热心的好孩子。" },
+      "长": { p: "cháng", c: "长江、长短", j: "小象有长长的鼻子。" },
+      "比": { p: "bǐ", c: "比赛、比较", j: "同学们在比赛打乒乓球。" },
+      "巴": { p: "bā", c: "尾巴、巴士", j: "小兔子的尾巴短。" },
+      "把": { p: "bǎ", c: "一把、把握", j: "请给我一把雨伞。" },
+      "下": { p: "xià", c: "下面、下雨", j: "外面开始下雨了。" },
+      "个": { p: "gè", c: "个人、一个", j: "我吃了一个甜甜的苹果。" },
+      "雨": { p: "yǔ", c: "下雨、雨水", j: "下雨了，出门要带伞。" },
+      "们": { p: "men", c: "我们、同学们", j: "同学们在做操。" },
+      "问": { p: "wèn", c: "问题、问好", j: "遇到不懂的要多问。" },
+      "有": { p: "yǒu", c: "有人、拥有", j: "抽屉里有一把尺子。" },
+      "半": { p: "bàn", c: "一半、半天", j: "我把西瓜切成两半。" },
+      "从": { p: "cóng", c: "从小、跟从", j: "从小养成爱卫生的习惯。" },
+      "才": { p: "cái", c: "人才、刚才", j: "刚才下了一阵阵小雨。" },
+      "明": { p: "míng", c: "明白、光明", j: "这道数学题我听明白了。" },
+      "同": { p: "tóng", c: "同学、共同", j: "同学们互相帮助。" },
+      "学": { p: "xué", c: "学习、学校", j: "我们在学校快乐地学习。" },
+      "自": { p: "zì", c: "自己、自由", j: "学会自己整理书包。" },
+      "己": { p: "jǐ", c: "自己、严律己", j: "做自己的小主人。" },
+      "衣": { p: "yī", c: "衣服、上衣", j: "妈妈给我买了新衣服。" },
+      "白": { p: "bái", c: "白天、白云", j: "白色的雪花飘落下来。" },
+      "的": { p: "de", c: "好的、我的", j: "这是我的新书包。" },
+      "又": { p: "yòu", c: "又大又红、又来", j: "苹果又大又红。" },
+      "和": { p: "hé", c: "我和你、和平", j: "我和小明是好朋友。" },
+      "竹": { p: "zhú", c: "竹子、竹林", j: "大熊猫喜欢吃竹子。" },
+      "牙": { p: "yá", c: "刷牙、牙齿", j: "早晚要养成刷牙好习惯。" },
+      "马": { p: "mǎ", c: "小马、马路", j: "过马路要看清红绿灯。" },
+      "用": { p: "yòng", c: "用心、有用", j: "读书要用心体会。" },
+      "几": { p: "jǐ", c: "几个、几天", j: "桌上有几个苹果？" },
+      "只": { p: "zhī", c: "一只、只能", j: "树上有一只小鸟。" },
+      "石": { p: "shí", c: "石头、石子", j: "小路上有很多小石子。" },
+      "多": { p: "duō", c: "多少、很多", j: "图书馆里有很多书。" },
+      "出": { p: "chū", c: "出来、日出", j: "小草从泥土里钻出来。" },
+      "见": { p: "jiàn", c: "看见、见面", j: "明天学校再见。" },
+      "对": { p: "duì", c: "对错、对面", j: "这个问题你回答对了。" },
+      "妈": { p: "mā", c: "妈妈、大妈", j: "妈妈晚上给我讲故事。" },
+      "全": { p: "quán", c: "全员、全心", j: "我们全家一起出游。" },
+      "回": { p: "huí", c: "回家、回来", j: "放学后按时回家。" }
+    };
+
+    // 格式化文本框输入
+    function buildDefaultText() {
+      return allCharacters.map(char => {
+        const info = dictDB[char] || { p: "pīn", c: "组词", j: "造句。" };
+        return `生字：${char}\n拼音：${info.p}\n组词：${info.c}\n组句：${info.j}`;
+      }).join('\n\n');
+    }
+
+    document.getElementById('inputText').value = buildDefaultText();
+
+    // 内存笔画缓存
+    const charStrokeCache = {};
+
+    // 获取 Vector SVG 笔画路径
+    async function getCharStrokes(char) {
+      if (charStrokeCache[char]) return charStrokeCache[char];
+      try {
+        const response = await fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${char}.json`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        charStrokeCache[char] = data.strokes;
+        return data.strokes;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 解析输入
+    function parseInput(text) {
+      const blocks = text.split(/\n\s*\n/);
+      const cardsData = [];
+
+      blocks.forEach(block => {
+        if (!block.trim()) return;
+        const lines = block.split('\n');
+        const item = { hanzi: '', pinyin: '', ciyu: '', juzi: '' };
+
+        lines.forEach(line => {
+          const str = line.trim();
+          if (str.startsWith('生字：') || str.startsWith('生字:')) {
+            item.hanzi = str.replace(/^生字[：:]/, '').trim();
+          } else if (str.startsWith('拼音：') || str.startsWith('拼音:')) {
+            item.pinyin = str.replace(/^拼音[：:]/, '').trim();
+          } else if (str.startsWith('组词：') || str.startsWith('组词:')) {
+            item.ciyu = str.replace(/^组词[：:]/, '').trim();
+          } else if (str.startsWith('组句：') || str.startsWith('组句:')) {
+            item.juzi = str.replace(/^组句[：:]/, '').trim();
+          }
+        });
+
+        if (item.hanzi) cardsData.push(item);
+      });
+
+      return cardsData;
+    }
+
+    // 生成第 N 笔高亮标红 SVG
+    function createStrokeStepSVG(strokes, currentStep) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 1024 1024');
+      svg.setAttribute('class', 'stroke-step-svg');
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('transform', 'scale(1, -1) translate(0, -900)');
+
+      for (let i = 0; i <= currentStep; i++) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', strokes[i]);
+        if (i === currentStep) {
+          path.setAttribute('fill', '#ff0000'); // 最新一笔强制红笔划
+        } else {
+          path.setAttribute('fill', '#000000'); // 历史笔画深黑
+        }
+        g.appendChild(path);
+      }
+
+      svg.appendChild(g);
+      return svg;
+    }
+
+    // 填充笔画区 DOM
+    async function populateStrokeRow(char, rowElem) {
+      const strokes = await getCharStrokes(char);
+      rowElem.innerHTML = '';
+
+      const countLabel = document.createElement('span');
+      countLabel.className = 'stroke-count-label';
+
+      if (strokes && strokes.length > 0) {
+        countLabel.innerText = `${strokes.length}画`;
+        rowElem.appendChild(countLabel);
+
+        const stepsList = document.createElement('div');
+        stepsList.className = 'stroke-steps-list';
+
+        strokes.forEach((_, stepIdx) => {
+          const itemBox = document.createElement('div');
+          itemBox.className = 'stroke-step-item';
+          const svgEl = createStrokeStepSVG(strokes, stepIdx);
+          itemBox.appendChild(svgEl);
+          stepsList.appendChild(itemBox);
+        });
+
+        rowElem.appendChild(stepsList);
+      } else {
+        countLabel.innerText = '笔顺同楷体';
+        rowElem.appendChild(countLabel);
+      }
+    }
+
+    // 渲染生成卡片
+    async function generateCards() {
+      const text = document.getElementById('inputText').value;
+      const data = parseInput(text);
+      const container = document.getElementById('preview-container');
+      container.innerHTML = '';
+
+      if (data.length === 0) {
+        alert('未解析出有效的生字信息！');
+        return;
+      }
+
+      const CARDS_PER_PAGE = 12; // 4行3列
+      const pageCount = Math.ceil(data.length / CARDS_PER_PAGE);
+
+      for (let p = 0; p < pageCount; p++) {
+        const page = document.createElement('div');
+        page.className = 'a4-page';
+
+        const pageData = data.slice(p * CARDS_PER_PAGE, (p + 1) * CARDS_PER_PAGE);
+
+        for (const item of pageData) {
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          // 1. 拼音四线三格区（护眼绿三格 + 经典楷体黑色大拼音）
+          const pinyinContainer = document.createElement('div');
+          pinyinContainer.className = 'pinyin-container';
+          pinyinContainer.innerHTML = `
+            <div class="pinyin-lines">
+              <div class="pinyin-line"></div>
+              <div class="pinyin-line"></div>
+              <div class="pinyin-line"></div>
+              <div class="pinyin-line"></div>
+            </div>
+            <div class="pinyin-text">${item.pinyin}</div>
+          `;
+
+          // 2. 笔画笔顺区
+          const strokeRow = document.createElement('div');
+          strokeRow.className = 'stroke-order-row';
+          strokeRow.innerText = '加载笔顺...';
+          populateStrokeRow(item.hanzi, strokeRow);
+
+          // 3. 极大田字格区（护眼绿框）
+          const tianzigeBox = document.createElement('div');
+          tianzigeBox.className = 'tianzige-box';
+          tianzigeBox.innerHTML = `
+            <svg class="tianzige-svg" viewBox="0 0 100 100">
+              <line x1="0" y1="50" x2="100" y2="50" stroke="#81c784" stroke-dasharray="3,3" stroke-width="1.5" />
+              <line x1="50" y1="0" x2="50" y2="100" stroke="#81c784" stroke-dasharray="3,3" stroke-width="1.5" />
+              <line x1="0" y1="0" x2="100" y2="100" stroke="#c8e6c9" stroke-width="0.8" />
+              <line x1="100" y1="0" x2="0" y2="100" stroke="#c8e6c9" stroke-width="0.8" />
+            </svg>
+            <div class="hanzi-text">${item.hanzi}</div>
+          `;
+
+          // 4. 组词与造句（楷体 14px 黑色放大字号）
+          const cardInfo = document.createElement('div');
+          cardInfo.className = 'card-info';
+          cardInfo.innerHTML = `
+            <div class="info-item">
+              <span class="label">组词：</span>
+              <span class="content">${item.ciyu || '-'}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">造句：</span>
+              <span class="content">${item.juzi || '-'}</span>
+            </div>
+          `;
+
+          card.appendChild(pinyinContainer);
+          card.appendChild(strokeRow);
+          card.appendChild(tianzigeBox);
+          card.appendChild(cardInfo);
+
+          page.appendChild(card);
+        }
+
+        // 补全页面保持 4x3 完美布局
+        if (pageData.length < CARDS_PER_PAGE) {
+          for (let i = 0; i < CARDS_PER_PAGE - pageData.length; i++) {
+            const emptyCard = document.createElement('div');
+            emptyCard.className = 'card';
+            emptyCard.style.visibility = 'hidden';
+            page.appendChild(emptyCard);
+          }
+        }
+
+        container.appendChild(page);
+      }
+    }
+
+    // 页面载入自动运行
+    window.onload = function() {
+      generateCards();
+    };
+  </script>
+</body>
+</html>
