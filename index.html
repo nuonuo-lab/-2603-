@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>一年级上册生字卡片生成器｜2603版</title>
   
-  <!-- 引入 Google Fonts 适合幼教/标准手写单层字母a的拼音字体与楷体 -->
+  <!-- 引入标准单层 ɑ 手写拼音字体与全平台中文字体支持 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -17,12 +17,12 @@
       --grid-dash: #81c784;     /* 田字格虚线绿 */
       --pinyin-line: #82c99b;   /* 四线三格护眼绿 */
       --text-black: #000000;    /* 纯黑色文字 */
-      --stroke-red: #ff0000;    /* 笔画高亮红 */
+      --stroke-red: #ff0000;    /* 最新笔画高亮红 */
       
       /* 跨平台楷体回退序列 */
       --font-kaiti: "STKaiti", "Kaiti SC", "KaiTi", "KaiTi_GB2312", "Noto Serif SC", "FZKai-Z03S", serif;
-      /* 拼音专用标准手写体：Andika 和 Century Gothic 均能将 a 渲染为标准的单层手写体 ɑ */
-      --font-pinyin: "Andika", "Century Gothic", "Comfortaa", "Fredoka", "Arial", sans-serif;
+      /* 优雅手写拼音字体（优先 Andika 保证单层 ɑ） */
+      --font-pinyin: "Andika", "Century Gothic", "Comfortaa", "Lucida Sans", sans-serif;
     }
 
     * {
@@ -38,6 +38,7 @@
       color: #000;
     }
 
+    /* 顶部控制面板 */
     .control-panel {
       max-width: 1050px;
       margin: 15px auto;
@@ -53,22 +54,23 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .info-tips {
-      font-size: 13px;
+      font-size: 13.5px;
       color: #2e7d32;
       background: #e8f5e9;
-      padding: 8px 12px;
+      padding: 9px 13px;
       border-left: 4px solid var(--primary-color);
       border-radius: 4px;
       margin-bottom: 10px;
+      line-height: 1.5;
     }
 
     textarea {
       width: 100%;
-      height: 140px;
+      height: 150px;
       padding: 10px;
       border: 1px solid #a5d6a7;
       border-radius: 6px;
@@ -100,6 +102,7 @@
     .btn-print { background-color: #27ae60; color: white; }
     .btn-print:hover { background-color: #1e8449; }
 
+    /* 预览容器 */
     #preview-container {
       display: flex;
       flex-direction: column;
@@ -108,6 +111,7 @@
       padding-bottom: 30px;
     }
 
+    /* 标准 A4 页面 (210mm x 297mm) */
     .a4-page {
       width: 210mm;
       height: 297mm;
@@ -123,6 +127,7 @@
       box-sizing: border-box;
     }
 
+    /* 单张卡片布局 */
     .card {
       border: 1px dashed #a5d6a7;
       border-radius: 4px;
@@ -136,55 +141,31 @@
       overflow: hidden;
     }
 
+    /* 1. 拼音区 (矢量四线三格 + 自然秀气拼音) */
     .pinyin-container {
       width: 100%;
-      height: 32px;
+      height: 36px;
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       margin-top: 1px;
     }
 
-    .pinyin-lines {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .pinyin-svg {
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      pointer-events: none;
+      display: block;
     }
 
-    .pinyin-line {
-      width: 100%;
-      height: 1px;
-      background-color: var(--pinyin-line);
-    }
-
-    .pinyin-line:nth-child(2), .pinyin-line:nth-child(3) {
-      border-top: 1px dashed var(--pinyin-line);
-      background-color: transparent;
-    }
-
-    .pinyin-text {
+    .pinyin-svg-text {
       font-family: var(--font-pinyin);
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-black);
-      z-index: 1;
-      line-height: 32px;
-      letter-spacing: 0px;
-      word-spacing: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: -1px;
-      -webkit-font-smoothing: antialiased;
+      font-size: 19px;
+      font-weight: 400; /* 取消加粗，保持标准手写美感 */
+      fill: var(--text-black);
+      text-anchor: middle;
+      dominant-baseline: alphabetic;
+      letter-spacing: 0.5px;
     }
 
+    /* 2. 笔画笔顺区 */
     .stroke-order-row {
       width: 100%;
       height: 22px;
@@ -225,6 +206,7 @@
       height: 100%;
     }
 
+    /* 3. 中间核心：护眼绿田字格 + 跨平台楷体大字 */
     .tianzige-box {
       width: 106px;
       height: 106px;
@@ -254,6 +236,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* 4. 底部组词造句区 */
     .card-info {
       width: 100%;
       font-family: var(--font-kaiti);
@@ -284,7 +267,7 @@
       word-break: break-all;
     }
 
-    /* 移动端与打印优化 */
+    /* 针对手机屏幕预览的适配 */
     @media screen and (max-width: 768px) {
       .control-panel {
         margin: 10px;
@@ -303,6 +286,7 @@
       }
     }
 
+    /* 打印控制 */
     @media print {
       body { background: none; }
       .control-panel { display: none !important; }
@@ -325,10 +309,11 @@
 
   <div class="control-panel">
     <h1>
-      <span>一年级上册生字卡片生成器｜2603版</span>
+      <span>🌿 一年级上册生字卡片生成器｜2603版</span>
+      <span style="font-size: 13px; font-weight: normal; color: #555;">护眼绿田字格 + 笔顺高亮</span>
     </h1>
     <div class="info-tips">
-      说明：可定义输入其他汉字并生成导出
+      💡 <strong>提示：</strong> 下方输入框已预设本学期生字，您也可以自由编辑或粘贴新内容，点击“生成字卡”即可实时更新。
     </div>
     <textarea id="inputText"></textarea>
     <div class="btn-group">
@@ -460,13 +445,6 @@
       }
     }
 
-    /* 确保拼音中的字母 a 强行转为标准单层手写体 ɑ 字符 (如需) */
-    function formatPinyinStandard(pinyinStr) {
-      if (!pinyinStr) return '';
-      // 保持声调的同时，确保渲染出的就是适合小朋友的标准形式
-      return pinyinStr;
-    }
-
     function parseInput(text) {
       const blocks = text.split(/\n\s*\n/);
       const cardsData = [];
@@ -571,16 +549,20 @@
           const card = document.createElement('div');
           card.className = 'card';
 
+          // 1. 矢量四线三格 + 自然精准拼音 (采用天然手写体比例，无强制缩放与加粗)
           const pinyinContainer = document.createElement('div');
           pinyinContainer.className = 'pinyin-container';
           pinyinContainer.innerHTML = `
-            <div class="pinyin-lines">
-              <div class="pinyin-line"></div>
-              <div class="pinyin-line"></div>
-              <div class="pinyin-line"></div>
-              <div class="pinyin-line"></div>
-            </div>
-            <div class="pinyin-text">${formatPinyinStandard(item.pinyin)}</div>
+            <svg class="pinyin-svg" viewBox="0 0 100 36">
+              <!-- 四线三格：三等分每格高10px -->
+              <line x1="0" y1="3" x2="100" y2="3" stroke="#82c99b" stroke-width="0.8" />
+              <line x1="0" y1="13" x2="100" y2="13" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
+              <line x1="0" y1="23" x2="100" y2="23" stroke="#82c99b" stroke-width="0.8" stroke-dasharray="2,1.5" />
+              <line x1="0" y1="33" x2="100" y2="33" stroke="#82c99b" stroke-width="0.8" />
+              
+              <!-- 拼音文字：锚定基线在 Y=23 (第三线)，展现自然手写体美感 -->
+              <text x="50" y="23" class="pinyin-svg-text">${item.pinyin}</text>
+            </svg>
           `;
 
           const strokeRow = document.createElement('div');
