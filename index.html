@@ -128,10 +128,10 @@
       overflow: hidden;
     }
 
-    /* 1. 拼音区 (护眼绿四线三格 + 经典楷体字加厚对齐) */
+    /* 1. 拼音区 (精确四线三格 + 紧密合理间距 + 基线完美对齐) */
     .pinyin-container {
       width: 100%;
-      height: 28px;
+      height: 32px;
       position: relative;
       display: flex;
       align-items: center;
@@ -164,16 +164,17 @@
 
     .pinyin-text {
       font-family: "Kaiti", "KaiTi_GB2312", "STKaiti", serif;
-      font-size: 26px;
+      font-size: 20px;
       font-weight: bold;
       color: var(--text-black);
       z-index: 1;
-      line-height: 28px;
-      letter-spacing: 2px;
+      line-height: 32px;
+      letter-spacing: 0px;
+      word-spacing: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: -3px;
+      margin-top: -1px;
     }
 
     /* 2. 笔画笔顺区 (黑色字 + 逐笔演变，最新一笔标红) */
@@ -548,7 +549,7 @@
           const card = document.createElement('div');
           card.className = 'card';
 
-          // 1. 拼音四线三格区（护眼绿三格 + 经典楷体黑色大拼音）
+          // 1. 拼音四线三格区（护眼绿三格 + 精确垂直对齐及优化字间距）
           const pinyinContainer = document.createElement('div');
           pinyinContainer.className = 'pinyin-container';
           pinyinContainer.innerHTML = `
